@@ -1,0 +1,351 @@
+{
+    "Description": "stage-1 VAE 在 bbox8 单数据集上的 fixed-scale 续训 (fine-tune): 从 final_stage1_vae_occ_gt_alternate_training_with_aria/epoch=62-step=36500.ckpt 接续, 只用 InteriorGS_Sampled_bbox8 (固定立方体归一化), gs_voxel_train_mode=alternate (gt_occ/occ 交替)。其余结构/loss/超参与 specs_oss_256_bbox8.json 一致。",
+    "training_task": "modulation",
+  
+    "_comment_data": "======== 数据集 ========",
+    "balanced_dataset_sampling": true,
+    "_comment_balanced_dataset_sampling": "DDP-aligned dataset-level sampling probabilities; each rank owns a disjoint source shard.",
+    "size_aligned_sampling": true,
+    "size_aligned_window_steps": 4,
+    "_comment_size_aligned_sampling": "按场景高斯数全局排序后跨数据集发牌: 同一 step 内所有 rank 拿到大小相近的样本 (混合数据集), 治 DDP 木桶效应; 每数据集每 epoch 抽取次数与旧逻辑一致, 设 false 回退。需要 loader 暴露 sample_sizes (缺失时自动回退旧逻辑)。",
+    "_comment_scene_split": "InteriorGS(全量)/InteriorGSCropped/InteriorGS_Sampled 三者必须排除同一组测试 scene。统一以 InteriorGS_Sampled 为 split_reference_path，按 seed=20260814 取 hash 序前 100 个共享测试 scene (test_scene_count=100)，与 config/dataset_split.json 的 100 个 test_scene_names 完全一致，评估集严格等于训练 held-out；aria_interiorgs 独立选择自己的 100 个测试 scene。上述四个 loader 均为 scene_split=train，这些测试 scene 不参与训练。world3d_sampled 有独立测试集 World3D_Sampled_test，训练侧用 scene_split=all；该数据存在重尾离群点（如 raw_max=81 vs p99.9=0.9），依赖 loader 的 spatial_outlier_filter（默认开，此处显式标注），补丁未同步到训练集群前不要启用本数据集。",
+    "gaussian_datasets": [
+      {
+        "name": "interiorGS_Sampled",
+        "type": "InteriorGaussianLoader",
+        "data_path": "/path/to/dataset/InteriorGS_Sampled_bbox8/",
+        "sample_weight": 1.0,
+        "loader_kwargs": {
+          "scene_split": "train",
+          "test_scene_count": 100,
+          "scene_split_seed": 20260814,
+          "split_reference_path": "/path/to/dataset/InteriorGS_Sampled_bbox8/",
+          "fixed_scale_trust": true
+        }
+      }
+    ],
+    "_comment_fixed_scale_trust_delivery": "fixed_scale_trust 必须放在 loader_kwargs 里: train.py 建 loader 只传 common_kwargs+loader_kwargs, 顶层同名键训练侧读不到 (顶层键只被 encode_latents/modulation_loader 编码路径消费)。放 loader_kwargs 后训练侧归一化与 bbox8 已打好的 latent cache (fixed-cube) 严格一致。",
+  
+    "_comment_grad_guard": "======== Gradient Guard ========",
+    "grad_guard_enabled": true,
+    "skip_bad_grad_step": true,
+    "grad_check_every": 10000,
+    "grad_guard_check_params": true,
+    "grad_guard_dump_on_fail": true,
+    "gradient_clip_val": 1.0,
+    "gradient_clip_algorithm": "norm",
+    "detect_anomaly": false,
+  
+    "_comment_model": "======== 模型结构 ========",
+    "GSModelSpecs": {
+      "hidden_dim": 256,
+      "latent_dim": 128,
+      "plane_resolution": 256,
+      "qformer_query": 4,
+      "qformer_heads": 8,
+      "qformer_layers": 4,
+      "qformer_num_freqs": 8,
+      "qformer_ca_stages": 2,
+  
+      "sparse_conv_specs": {
+          "coarse_reso": 64,
+          "channels": [64, 128, 192, 256],
+          "num_res_blocks": 2,
+          "num_res_blocks_middle": 2,
+          "norm_type": "group",
+          "use_skip": true
+      },
+
+     "trunk_type": "ptv3",
+      "ptv3_specs": {
+        "grid_reso": 256,
+        "patch_size": [256, 256, 512, 512, 1024],
+
+        "enc_channels": [48, 96, 192, 384, 384],
+        "enc_depths":   [3, 3, 3, 12, 3],
+        "enc_num_head": [2, 4, 8, 16, 16],
+
+        "dec_channels": [48, 96, 192, 384],
+        "dec_depths":   [2, 2, 2, 2],
+        "dec_num_head": [2, 4, 8, 16],
+
+        "stride": [2, 2, 2, 2],
+        "orders": ["z", "z-trans", "hilbert", "hilbert-trans"],
+        "shuffle_orders": true,
+
+        "ff_mult": 2,
+        "pe_num_freqs": 8,
+        "use_rope": true,
+        "use_qk_rmsnorm": true,
+        "rope_base": 100.0,
+
+        "use_checkpoint": false
+      },
+  
+      "_comment_plane_refine": "======== Plane feature refine (ResNet2D) ========",
+      "use_plane_unet": true,
+      "plane_resnet_hidden": 128,
+      "plane_resnet_blocks": 3,
+      "plane_resnet_stem": 9,
+  
+      "_comment_cross_plane_sparse_qformer": "======== QFormer阶段稀疏跨平面通信 ========",
+      "use_cross_plane_sparse_qformer": true,
+      "cross_plane_sparse_qformer_heads": 8,
+      "cross_plane_sparse_qformer_layers": 1,
+      "cross_plane_sparse_qformer_ff_mult": 2,
+      "cross_plane_sparse_qformer_chunk_size": 4000
+    },
+
+    "freeze_ae": false,
+    "vae_direct_only_steps": 0,
+    "VAESpecs": {
+      "enabled": true,
+      "plane_mode": "resnet_only",
+      "z_channels": 16,
+      "base_ch": 384,
+      "ch_mult": [1, 2],
+      "num_res_per_stage": 3,
+
+      "kl_weight": 2.0e-4,
+      "kl_warmup_start": 0,
+      "kl_warmup_steps": 6000,
+  
+
+      "plane_l1_weight": 0,
+      "plane_cosine_weight": 0,
+      "plane_active_l1_weight": 0,
+      "plane_inactive_l1_weight": 0,
+      "sample_start": 0,
+      "sample_ramp_steps": 0
+     },
+  
+    "DETRDecoderSpecs": {
+      "decoder_type": "hybrid",
+      "num_queries": 24,
+      "num_layers": 6,
+      "num_heads": 8,
+      "ca_kv_heads": 8,
+
+      "occ_context_fuse_mode": "concat_project",
+
+      "context_num_tokens_per_plane": 4,
+      "use_query_resample_refine": false,
+      "refine_scale": false,
+      "refine_rotation": false,
+  
+      "sparse_num_layers": 6,
+      "sparse_window_size": 3,
+      "sparse_coord_stride": 1,
+      "sparse_use_shifted_windows": true,
+      "sparse_use_rel_pe": true,
+      "sparse_rel_pe_num_freqs": 8,
+  
+      "hybrid_num_layers": 6,
+      "hybrid_window_size": 3,
+      "hybrid_coord_stride": 1,
+      "hybrid_use_shifted_windows": true,
+      "hybrid_use_rel_pe": true,
+      "hybrid_rel_pe_num_freqs": 8,
+      "hybrid_ff_mult": 2,
+      "hybrid_use_ffn": true,
+      "hybrid_zero_init_intra_out": true,
+
+      "shape_trunk_layers": 2,
+      "shape_trunk_mult": 2,
+      "head_layers": 2,
+      "head_hidden_mult": 3,
+
+      "use_dn": false,
+      "predict_opacity": true,
+      "predict_objectness": true,
+
+      "hybrid_inter_voxel_scales": [
+        1.0,
+        0.50,
+        0.25,
+        0.0,
+        0.0,
+        0.0
+      ],
+
+      "use_patch_context": false,
+      "context_patch_radius": 0,
+      "context_rel_num_freqs": 6
+      },  
+  
+    "_comment_voxel": "======== Voxel 配置 ========",
+    "input_dim": 59,
+    "sh_dim": 48,
+    "voxel_reso": 256,
+    "voxel_padding": 0.1,
+    "_comment_fixed_scale_trust": "bbox8 固定立方体离线归一化数据专用: 信任 norm_meta.npz 的固定 scale (8m 盒半对角->半径1), 不再 per-view 百分位归一化; target_half_range 缺省 0.5*1.1/sqrt(2)≈0.3889, 方形截面任意 yaw 下斜角恰好顶到 triplane 网格半宽 0.55, 不越界。此 specs 不可用于旧的 per-view 归一化数据。",
+    "fixed_scale_trust": true,
+    "n_occ_sample": 250000,
+    "_comment_gaussian_capacity": "encoder 每 voxel 最多 8 个；decoder/matching 最多 24 个；render GT 使用过滤后的完整高斯",
+    "max_gaussians_per_voxel": 24,
+    "encoder_max_gaussians_per_voxel": 8,
+    "render_gt_use_all_gaussians": true,
+    "_comment_max_total_gaussians": "单场景高斯总量硬上限 (per-voxel limit 不控制总量)；预处理后超过 350W 则随机 subsample，gaussians_full 与 gaussians_render_full 分别施加，防止超大场景 GPU OOM",
+    "max_total_gaussians": 3500000,
+    "voxel_z_full_coverage": true,
+
+    "sinkhorn_eps": 0.03,
+    "sinkhorn_iters": 80,
+  
+    "use_all_gt_voxels_for_match": true,
+    "voxel_sample_mode": "single_block_context",
+    "voxel_local_sample_ratio": 0.80,
+    "voxel_near_ratio": 0.15,
+    "num_proposer_samples": 10000,
+    "decoder_chunk_size": 4000,
+    "decoder_grad_checkpoint": true, 
+    "profile_train_time": true,
+    "profile_time_every":200,
+  
+    "_comment_loss_weights": "======== Loss 权重 ========",
+    "match_loss_weight": 2.0,
+    "base_match_loss_weight": 0,
+    "cost_scale_warmup_start": 6000,
+    "cost_scale_warmup_end": 9000,
+    
+    "gaussian_loss_weights": {
+      "xyz": 5.0,
+      "scale": 0.05,
+      "rot": 0.2,
+      "color": 0.0,
+      "opacity": 0.0
+    },
+  
+    "detr_loss_color_match_dim": 3,
+    "color_loss_full_sh": true,
+    "color_match_weight": 1.0,
+  
+    "objectness_loss_weight": 1.0,
+
+    "_comment_voxel_act": "======== P0 Voxel activation loss ========",
+    "voxel_act_loss_weight": 0.3,
+    "voxel_act_start_step": 0,
+    "voxel_act_ramp_end_step": 1000,
+    "voxel_act_score_margin": 0.15,
+    "_comment_unmatched_neg": "P0b: 压 GT voxel 中渲染用不到的 query (target_obj < gate) 的 score=obj*opa, 堵住 BCE 只压 obj 导致 opacity 失控漏过推理阈值的半边门",
+    "voxel_act_unmatched_neg_weight": 0.5,
+    "voxel_act_unmatched_neg_gate": 0.1,
+
+    "occ_loss_weight": 1.0,
+    "occ_voxel_loss_weight": 0.5,
+    "occ_voxel_neg_reso": 256,
+    "occ_voxel_neg_ratio": 4,
+    "occ_pos_margin": 0.8,
+    "occ_neg_margin": 0.1,
+    "occ_ignore_halo_voxels": 1,
+    "occ_eval_threshold": 0.5,
+    "occ_transition_band_weight": 0.2,
+    "occ_target_sharpen_gamma": 1.0,
+    "phantom_ignore_halo_voxels": 2,
+    
+    "vis_save_every": 500,
+    "loss_curve_save_every": 200,
+    "loss_curve_record_every": 1,
+    "save_render_vis_on_loss_step": true,
+    "save_gblock_ply_on_loss_step": true,
+    "render_debug_seed": 12345,
+    "loss_spike_ratio": 5,
+  
+    "_comment_dn": "======== DN (当前关闭) ========",
+    "dn_loss_weight": 1.0,
+    "dn_warmup_steps": 30000,
+  
+    "_comment_render": "======== Render loss ========",
+    "no_ot": false,
+    "rgb_only_supervision": true,
+    "use_render_loss": true,
+    "render_all_gaussians":false,
+    "render_query_mask_mode": "union",
+    "render_detach_xyz": true,
+  
+    "render_loss_weight": 50,
+    "normal_loss_weight": 0.0,
+    "render_loss_start_iter": 0,
+    "render_loss_ramp_steps": 0,
+    "lpips_weight": 0,
+  
+    "render_cam_strategy": "scene_aware",
+    "render_min_fg_ratio": 0.2,
+    "free_six_start": 2000,
+    "free_six_prob": 0.4,
+
+    "free_six_fovy_deg": 70.0,
+    "free_six_min_visible_ratio": 0.02,
+    "free_six_min_depth_abs": 0.10,
+    "free_six_min_projected_span_ratio": 0.12,
+    "free_six_min_projected_area_ratio": 0.002,
+    "free_six_anchor_expand": 1.5,
+
+    "free_six_render_min_fg_ratio": 0.02,
+    "render_free_six_max_attempts": 80,
+  
+    "render_num_views": 24,
+    "render_img_size": 640,
+    "render_lpips_img_size": 512,
+    "render_bg_weight": 0.1,
+    "render_bg_color": [0.0, 0.0, 0.0],
+    "render_cam_mode": "aabb",      
+    "render_near": 0.01,
+    "render_far": 9.0,  
+  
+    "render_num_voxels": 100000,
+    "render_n_blocks": 6,
+    "scene_num_blocks": 8,
+    "render_voxel_local_core_ratio": 0.85,
+    "render_voxel_near_ratio": 0.15,
+    "render_voxel_anchor_count_power": 0.5,
+    "render_voxel_block_boundary_noise": 0.02,
+    "render_ot_obj_threshold": 0.1,
+    "render_min_gaussians": 500,
+  
+    "_comment_erank": "======== Erank regularization ========",
+    "use_erank_reg": false,
+    "erank_reg_weight": 0.1,
+    "erank_reg_start_iter": 16000,
+    "use_planar_guidance": false,
+  
+    "_comment_gs_voxel_train_mode": "GS decoder voxel source: gt=仅GT；occ=仅推理同款Occ proposal；gt_occ=GT与Occ并集；alternate=稳定期gt_occ，之后按global step在gt_occ/occ之间交替",
+    "gs_voxel_train_mode": "alternate",
+    "gs_voxel_occ_start_step": 1000,
+    "gs_voxel_alternate_start_step": 0,
+    "gs_voxel_occ_cascade_reso": [256],
+    "gs_voxel_occ_keep_ratio": [0.8],
+    "gs_voxel_occ_threshold": 0.4,
+    "gs_voxel_occ_max_voxels": 0,
+    "gs_voxel_occ_chunk_size": 4000,
+    "gs_voxel_occ_dilate": 0,
+    "gs_voxel_occ_fallback_to_gt_if_empty": true,
+    "_comment_gs_voxel_infer_align": "严格对齐本配置时，test.py 使用 --cascade_reso 256 --keep_ratio 0.8 --occ_threshold 0.1 --dilate 0；训练侧 max_voxels=0 表示不截断，proposal 数完全由阈值决定",
+
+    "_comment_phantom": "======== Phantom / Occ proposal shared settings ========",
+    "use_phantom_training": true,
+    "phantom_start_step": 1000,
+    "phantom_ramp_end_step": 1000,
+    "phantom_cascade_reso": [256],
+    "phantom_keep_ratio":   [0.20],
+    "phantom_occ_threshold": 0.1,
+    "max_phantom": 0,
+    "phantom_chunk_size": 4000,
+    "phantom_obj_weight": 0.5,
+  
+    "_comment_lr_schedule": "======== Learning Rate Schedule (warmup → cosine decay) ========",
+    "sdf_lr": 2e-4,
+    "lr_schedule": {
+      "type": "cosine_warmup",
+      "warmup_start_step": 0,
+      "warmup_steps": 12000,
+      "flat_high_steps": 10000,
+      "decay_steps": 10000,
+      "lr_peak": 2e-4,
+      "lr_min": 1e-4
+    },
+
+    "_comment_training": "======== 训练 ========",
+    "num_epochs": 1000001,
+    "ckpt_step_freq": 500
+  }

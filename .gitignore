@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+*.swp
+*.log
+output/
+infer_only_out/
+out_interiorgscropped_psnr/
+*.ply
+*.ckpt
+.claude/
+.vscode/

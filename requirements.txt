@@ -1,0 +1,60 @@
+# =============================================================
+# 精简版 requirements (2026-07-24)
+# 只覆盖: stage-1 GS-VAE 训练 (train.py) / stage-2 diffusion 训练
+# (train.py) / 打 latent (dataloader/modulation_loader.py) /
+# 推理 (test.py) 的传递依赖。
+# 依据: AST 扫描全仓库 import 后逐链人工确认。
+# 传递依赖 (torchvision/tokenizers/safetensors/joblib 等) 由 pip
+# 自动解析, 不再手动 pin。原完整版见 git 历史。
+# =============================================================
+
+# gsplat (test.py --eval_render 与 bbox refilter GS 可见性使用；惰性导入)
+# gsplat: 请从官方源安装, 如 pip install gsplat (CUDA) ; 原内部 ROCm 构建已移除
+
+torch==2.8.0.*              # 已装满足版本的 torch (CUDA/ROCm 均可) 时跳过
+numpy==1.23.0               # 与 pandas==2.3.3 组合已验证, 不要升
+pandas==2.3.3               # dataloader/base.py, utils/evaluate.py
+scipy==1.13.1               # combined_model / utils (cKDTree)
+scikit-learn==1.7.2         # utils/pointcloud.py 顶层 import (test.py 链)
+tqdm==4.66.4
+einops==0.8.2
+plyfile==0.8.1              # convert.py / combined_model / test.py
+matplotlib==3.5.3           # combined_model 画 loss 曲线
+trimesh==4.4.9              # test.py / utils.evaluate (纯 python)
+pillow==10.4.0
+lpips==0.1.4                # combined_model render loss (自动拉 torchvision)
+pytorch-msssim==1.0.0       # combined_model
+transformers==4.57.0        # CLIP: 打 latent context / test.py --text
+huggingface-hub==0.36.0
+flash-attn                  # required by models/archs/gs_decoder.py
+
+# Depth-Anything-3 (vendored third_party/) 运行期依赖:
+# cond_depth 编码 (encode_latents.sh CACHE_MODE=cond_depth) 需要。
+# omegaconf 2.x 必须配 antlr4 4.9.x; einops 已在上方。
+# 装上后不再依赖外部预打包的 da3_stack.tar.gz 回退包。
+omegaconf==2.3.0
+antlr4-python3-runtime==4.9.3
+addict
+evo
+imageio                     # DA3 utils/parallel_utils.py 顶层 import
+
+# ── 已删除 (三条链路 0 处 import) ──────────────────────────
+# Hunyuan3D 遗留:  hy3dgen, taming-transformers-rom1504, kiui, roma,
+#                  jaxtyping, wadler_lindig, typeguard, xatlas, pygltflib
+# 图像修复链:       basicsr, gfpgan, facexlib, rembg, onnxruntime
+# 人体模型:         smplx (属于 gaussian_splatting_sim 项目)
+# 服务/Web:        fastapi, uvicorn, starlette, websockets, aiohttp 一族,
+#                  dash, plotly, Werkzeug, blinker, itsdangerous
+# 云/存储 SDK:     boto3, botocore, s3transfer, oss2, aliyun-python-sdk-*,
+#                  megfile, paramiko, crcmod, pycryptodome
+# notebook 堆:     ipython, ipywidgets, jupyter*, widgetsnbextension 等
+# 旧训练入口:       pytorch-lightning (仅 train_ori.py 用)
+# 旧 diffusion:    einops-exts, rotary-embedding-torch
+#                  (仅 models/archs/diffusion_arch.py, 训练路径不经过)
+# 其他未用:         numba, llvmlite, scikit-image, pyquaternion, filterpy,
+#                  diffusers, timm, kornia, munkres, lmdb, pyrender,
+#                  open3d (pointcloud.py 里 try/except 可选), openai,
+#                  decord, ffmpy, pydub, pyglet, nvitop, tb-nightly,
+#                  tensorboard-data-server, loguru, coloredlogs,
+#                  ConfigArgParse, cloudpickle, objprint, varname, dna,
+#                  invoke, GitPython, spaces, opencv-python(-headless)
