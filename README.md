@@ -22,6 +22,7 @@ dataloader/                       # InteriorGS / ScanNet / latent-condition load
 diff_utils/helpers.py             # shared training helpers
 utils/                            # occupancy voxel proposer, eval & render helpers
 process_data/                     # runtime rendering subset (gsplat renderer, scene, lpips)
+process_data/preprocessing/       # dataset preprocessing: crop / occ labels / view sampling
 third_party/Depth-Anything-3/     # vendored DA3 for the cond_depth conditioning pathway
 config/                           # dataset splits + stage-1 / stage-2 specs
 ```
@@ -48,6 +49,28 @@ Dataset roots in the configs are placeholders (`/path/to/...`). Point them to yo
 
 - `config/dataset_split.json` — train/val/test scene splits and dataset roots.
 - Stage-2 training additionally expects pre-extracted latents (`latent.pt` per view) and `latent_stats.pt` (latent normalization statistics).
+
+Preprocessing scripts live in `process_data/preprocessing/` and turn raw 3DGS scenes into the training format (`gaussian.npy` / `occ.npy` / `normalized_gs.ply` / `norm_meta.npz` per block):
+
+```bash
+# 1) view-level sampling from raw scenes (render images + captions; requires Qwen3-VL)
+python process_data/preprocessing/interiorgs_sampling.py --root /path/to/dataset/InteriorGS/
+
+# 2) normalize scenes and sample continuous occupancy labels -> occ.npy
+python process_data/preprocessing/preprocess_gs_occ.py --root /path/to/dataset/InteriorGS/
+
+# 3) (optional) recompute thinner occ soft labels -> occ_new.npy (reduces edge halo artifacts)
+python process_data/preprocessing/regen_occ.py --root /path/to/dataset/InteriorGS_Sampled/
+
+# 4) crop scenes into absolute-scale 8m x 8m x 8m blocks (bbox8 variant)
+python process_data/preprocessing/chunk_scene_to_abs_bbox8.py \
+    --root /path/to/dataset/InteriorGS --output_root /path/to/dataset/InteriorGS_bbox8
+
+# 5) (optional) refilter sampled views by oriented bounding box (InteriorGSCropped variant)
+python process_data/preprocessing/refilter_sampled_oriented_bbox.py --help
+```
+
+`interiorgs_sampling.py` loads Qwen3-VL for captioning; the other four are pure numpy/scipy/plyfile and support multi-process / torchrun parallelism with safe resume.
 
 ## Training
 
