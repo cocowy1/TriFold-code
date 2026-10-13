@@ -323,85 +323,12 @@
         </p>
       </div>
 
+      <h3 class="title is-4">Point-Cloud-Conditioned Generation</h3>
       <div class="has-text-centered">
         <img src="./assets/fig5_pcgen.png" class="figure-img" alt="Point-cloud-conditioned generation">
         <p class="figure-caption">
           Point-cloud-conditioned generation. Given a full point cloud, the latent flow model generates native 3DGS
           with coherent geometry and appearance across novel views.
-        </p>
-      </div>
-      <br />
-
-      <div class="has-text-centered">
-        <img src="./assets/fig6_amodal.png" class="figure-img" alt="Single-image amodal generation">
-        <p class="figure-caption">
-          Single-image amodal generation. Given one input image, the latent flow model generates plausible room
-          structure and appearance across novel views.
-        </p>
-      </div>
-      <br />
-
-      <div class="has-text-centered">
-        <video autoplay controls muted loop playsinline
-          style="width:100%;max-width:960px;border:1px solid #eee;border-radius:6px;">
-          <source src="./assets/image_0071_0250.mp4" type="video/mp4">
-        </video>
-        <p class="figure-caption">
-          Single-image-conditioned scene generation demo (Input Image | TriFold (Ours)).
-        </p>
-      </div>
-      <br />
-
-      <div class="has-text-centered">
-        <video autoplay controls muted loop playsinline
-          style="width:100%;max-width:960px;border:1px solid #eee;border-radius:6px;">
-          <source src="./assets/img2gs_0015_0069.mp4" type="video/mp4">
-        </video>
-        <p class="figure-caption">
-          Single-image-conditioned scene generation demo (Input Image | TriFold (Ours)).
-        </p>
-      </div>
-      <br />
-
-      <div class="has-text-centered">
-        <table class="table results is-bordered is-striped is-hoverable">
-          <thead>
-            <tr>
-              <th rowspan="2">Condition</th>
-              <th colspan="2">Observed Appearance</th>
-              <th colspan="2">Unobserved Appearance</th>
-              <th colspan="2">Unobserved Geometry</th>
-            </tr>
-            <tr>
-              <th>FID &darr;</th>
-              <th>KID (&times;10<sup>3</sup>) &darr;</th>
-              <th>FID &darr;</th>
-              <th>KID (&times;10<sup>3</sup>) &darr;</th>
-              <th>COV-CD (%) &uarr;</th>
-              <th>MMD-CD (&times;10<sup>3</sup>) &darr;</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>Full point cloud</td>
-              <td>54.12</td>
-              <td>16.76</td>
-              <td colspan="4">N/A (complete conditioning)</td>
-            </tr>
-            <tr>
-              <td>Single image</td>
-              <td>60.38</td>
-              <td>18.20</td>
-              <td>67.81</td>
-              <td>21.43</td>
-              <td>85.24</td>
-              <td>12.75</td>
-            </tr>
-          </tbody>
-        </table>
-        <p class="figure-caption">
-          Conditional generation evaluation. For single-image conditioning, appearance is evaluated separately in
-          regions observed and unobserved from the conditioning view.
         </p>
       </div>
       <br />
@@ -413,6 +340,35 @@
           point-cloud condition, illustrating the diversity of generated indoor layouts and scene content.
         </p>
       </div>
+      <br />
+
+      <h3 class="title is-4">Single-Image-Conditioned Amodal Generation</h3>
+      <div class="has-text-centered">
+        <img src="./assets/fig6_amodal.png" class="figure-img" alt="Single-image amodal generation">
+        <p class="figure-caption">
+          Single-image amodal generation. Given one input image, the latent flow model generates plausible room
+          structure and appearance across novel views.
+        </p>
+      </div>
+      <br />
+
+      <div class="columns is-centered is-variable is-4">
+        <div class="column is-half has-text-centered">
+          <video autoplay controls muted loop playsinline
+            style="width:100%;border:1px solid #eee;border-radius:6px;">
+            <source src="./assets/image_0071_0250.mp4" type="video/mp4">
+          </video>
+        </div>
+        <div class="column is-half has-text-centered">
+          <video autoplay controls muted loop playsinline
+            style="width:100%;border:1px solid #eee;border-radius:6px;">
+            <source src="./assets/img2gs_0015_0069.mp4" type="video/mp4">
+          </video>
+        </div>
+      </div>
+      <p class="figure-caption has-text-centered">
+        Single-image-conditioned scene generation demos (Input Image | TriFold (Ours)).
+      </p>
     </div>
   </section>
 
