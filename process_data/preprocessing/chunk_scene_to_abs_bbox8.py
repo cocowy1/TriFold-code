@@ -49,10 +49,10 @@ import numpy as np
 from plyfile import PlyData, PlyElement
 from scipy.spatial import cKDTree
 
-# 允许从 process_data/sampling_scene/regen_occ.py 导入 occ 自适应采样
+# 允许从同目录的 regen_occ.py 导入 occ 自适应采样
 sys.path.insert(0, os.path.dirname(__file__))
 try:
-    from sampling_scene.regen_occ import build_occ_fixed_radius
+    from regen_occ import build_occ_fixed_radius
     HAS_REGEN_OCC = True
 except Exception as _e:
     HAS_REGEN_OCC = False
@@ -401,7 +401,7 @@ def sample_occ_thin_shell_for_block(
     """
     if not HAS_REGEN_OCC:
         raise RuntimeError(
-            "无法导入 sampling_scene.regen_occ.build_occ_fixed_radius，"
+            "无法导入 regen_occ.build_occ_fixed_radius，"
             "不能生成薄壳 occ 标签"
         )
     if xyz.shape[0] == 0:
@@ -734,7 +734,7 @@ def process_one_scene(args) -> Dict[str, any]:
 
 def _detect_shard(args) -> Tuple[int, int, str]:
     """(shard_id, num_shards, shard_src)。显式参数优先，否则读
-    RANK/WORLD_SIZE 环境变量（ai-hub / torchrun 均注入）。
+    RANK/WORLD_SIZE 环境变量（torchrun / 集群 launcher 均注入）。
 
     注意：shard_id 必须用全局 RANK，不能用 LOCAL_RANK —— torchrun 多 pod
     时 LOCAL_RANK 是 pod 内编号（每个 pod 都是 0..N-1），拿它分片会导致
@@ -848,7 +848,7 @@ def main():
 
     if not HAS_REGEN_OCC:
         raise RuntimeError(
-            f"无法导入 sampling_scene.regen_occ.build_occ_fixed_radius: {_REGEN_OCC_ERR}"
+            f"无法导入 regen_occ.build_occ_fixed_radius: {_REGEN_OCC_ERR}"
         )
 
     cfg = {

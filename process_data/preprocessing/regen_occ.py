@@ -977,7 +977,7 @@ def process_block(root: str, scene_name: str, block_name: str, block_dir: str,
 def run_worker(args, shard_id: int = 0, num_shards: int = 1):
     """单进程主循环: 扫 scene → claim → 逐 block 重算.
 
-    分片: scene 列表按 shard_id::num_shards 交错切分, 各 ai-hub worker
+    分片: scene 列表按 shard_id::num_shards 交错切分, 各 worker
     只扫自己的切片 (旧版所有 worker 从同一表头扫, 跟随者全程在 stat
     已完成/被抢场景, 实际只剩 1 个 worker 在干活)。claim 锁保留,
     作为同分片内多进程、以及多 job/手动补跑重叠时的互斥兜底。
@@ -1099,12 +1099,12 @@ def main():
                              "多进程不会重复处理; 按 worker 的 CPU 核数设, "
                              "建议 4~8, 每个进程峰值内存约数 GB")
     parser.add_argument("--num_scene_shards", type=int, default=1,
-                        help="场景分片总数 (= ai-hub worker 数)。scene 列表按"
+                        help="场景分片总数 (= 并行 worker 数)。scene 列表按"
                              " shard_id::num_shards 交错切分, 各 worker 只处理"
                              " 自己的切片; claim 锁仍兜底多 job 重叠")
     parser.add_argument("--scene_shard_id", type=int, default=-1,
-                        help="本分片 id。-1 = 从 RANK 环境变量读 (ai-hub 每个"
-                             " worker 的 RANK 即 worker 序号); 无 RANK 的本地"
+                        help="本分片 id。-1 = 从 RANK 环境变量读 (torchrun/集群"
+                             " launcher 每个 worker 的 RANK 即 worker 序号); 无 RANK 的本地"
                              " 运行退回 0/1 全量, 行为与旧版一致")
     parser.add_argument("--force", action="store_true", default=False,
                         help="全量重算: 忽略已有 occ_new.npy 并覆盖写入 "
@@ -1119,7 +1119,7 @@ def main():
         parser.error("--occ_r_local 和 --occ_r_nf 必须一起传 (固定米数模式), "
                      "或都不传 (体素自适应模式)")
 
-    # 分片解析: --scene_shard_id=-1 时读 ai-hub/torchrun 注入的 RANK;
+    # 分片解析: --scene_shard_id=-1 时读 torchrun/集群 launcher 注入的 RANK;
     # 本地无 RANK 环境退回 0/1 全量 (行为与旧版一致, 不会只跑 1/N)。
     # num_shards 取 --num_scene_shards 与 WORLD_SIZE 的较大者, 防止
     # 提交脚本漏传 num_scene_shards 时多个 worker 重叠扫全量。

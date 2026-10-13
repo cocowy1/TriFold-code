@@ -1358,7 +1358,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         flush=True,
     )
     # 视图级失败全部安静跳过, 永不以非零退出: 部分 (甚至全部) 视图不达标
-    # 被抛弃都不应把 ai-hub job 标成失败, 失败情况看 DONE 行或 grep FAILED。
+    # 被抛弃都不应把整个 job 标成失败, 失败情况看 DONE 行或 grep FAILED。
     return 0
 
 

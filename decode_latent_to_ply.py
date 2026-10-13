@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """从 latent.pt 直接解码 3D Gaussian Splatting PLY (stage-1 VAE 直通).
 
-链路 (与 test.py --latent_pt / utils/eval_vae_split.py 完全一致, 仅精简):
+链路 (与 utils/eval_vae_split.py 完全一致, 仅精简):
 
     latent.pt ([Q,C,H,W] 或 [B,Q,C,H,W], z*latent_scale 原始尺度)
     -> vae.z_from_diffusion(layout="dit_native")   # 除以 latent_scale
@@ -12,7 +12,7 @@
     -> 打包 59 (sh_dim=48) / 14 (sh_dim=3) 列
     -> convert / convert_compact 写标准 3DGS PLY
 
-用法 (在 diffgs_detr 项目根目录, 需 GPU):
+用法 (在仓库根目录, 需 GPU):
 
     python decode_latent_to_ply.py \
         --latent_pt /path/to/view_dir_or_latent.pt \
