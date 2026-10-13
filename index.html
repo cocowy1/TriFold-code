@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="description"
+    content="TriFold: Folding Irregular 3D Gaussians into Structured Latents for 3D Scene Generation">
+  <meta name="keywords" content="TriFold, 3D Gaussian Splatting, VAE, Triplane, Scene Generation, Flow Matching">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- More research下拉菜单 开始 -->
+  <div
+    style="width:100%; display: flex; justify-content: center; align-items: center; margin-top: 20px; position: relative; z-index: 100;">
+    <div style="position: relative; display:inline-block;">
+      <button id="moreResearchBtn"
+        style="background-color: #fff; color: #333; padding: 10px 24px; font-size: 16px; border: 1px solid #ccc; border-radius: 5px; cursor: pointer;">
+        More research ▼
+      </button>
+      <div id="moreResearchDropdown"
+        style="display: none; position: absolute; left: 0; top: 110%; background: #fff; border: 1px solid #ccc; border-radius: 5px; box-shadow:0 6px 12px rgba(0,0,0,0.1); min-width: 180px; z-index: 999;">
+      </div>
+    </div>
+  </div>
+  <!-- More research下拉菜单 结束 -->
+
+  <title>TriFold: Folding Irregular 3D Gaussians into Structured Latents for 3D Scene Generation</title>
+
+  <link href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro" rel="stylesheet">
+
+  <link rel="stylesheet" href="./static/css/bulma.min.css">
+  <link rel="stylesheet" href="./static/css/bulma-carousel.min.css">
+  <link rel="stylesheet" href="./static/css/bulma-slider.min.css">
+  <link rel="stylesheet" href="./static/css/fontawesome.all.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
+  <link rel="stylesheet" href="./static/css/index.css">
+  <link rel="icon" href="./assets/favicon.svg">
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script defer src="./static/js/fontawesome.all.min.js"></script>
+  <script src="./static/js/bulma-carousel.min.js"></script>
+  <script src="./static/js/bulma-slider.min.js"></script>
+  <script src="./static/js/index.js"></script>
+
+  <style>
+    .figure-img {
+      border: 1px solid #eee;
+      border-radius: 6px;
+      background: #fff;
+      max-width: 100%;
+    }
+
+    .figure-caption {
+      margin: 0.75rem auto 0;
+      font-size: 0.95rem;
+      color: #555;
+      max-width: 900px;
+    }
+
+    table.results {
+      margin: 0 auto;
+    }
+
+    table.results th,
+    table.results td {
+      text-align: center;
+      vertical-align: middle;
+    }
+  </style>
+</head>
+
+<body>
+  <section class="hero-transparent hero-landing">
+    <div class="container is-max-desktop hero-shell">
+      <div class="hero-stack has-text-centered">
+        <h1 class="title is-1 publication-title hero-title">TriFold</h1>
+        <p class="subtitle hero-subtitle">Folding Irregular 3D Gaussians into Structured Latents for 3D Scene
+          Generation</p>
+
+        <div class="publication-authors">
+          <div class="hero-authors">
+            <span class="author-block">Anonymous Authors</span>
+          </div>
+        </div>
+
+        <div class="publication-authors hero-affiliations">
+          <span class="author-block">ICLR 2027 Submission (Under Double-Blind Review)</span>
+        </div>
+
+        <div class="publication-links">
+          <!-- PDF Link. -->
+          <span class="link-block">
+            <a href="./assets/paper.pdf" class="external-link button is-normal is-rounded is-dark">
+              <span class="icon">
+                <i class="fas fa-file-pdf"></i>
+              </span>
+              <span>Paper</span>
+            </a>
+          </span>
+          <!-- Code Link. -->
+          <span class="link-block">
+            <a href="#" class="external-link button is-normal is-rounded is-dark">
+              <span class="icon">
+                <i class="fab fa-github"></i>
+              </span>
+              <span>Code (Coming Soon)</span>
+            </a>
+          </span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <section class="section section-intro">
+    <div class="container is-max-desktop">
+      <div class="has-text-centered">
+        <img src="./assets/fig1_teaser.png" class="figure-img" alt="TriFold overview">
+        <p class="figure-caption">
+          TriFold encodes variable-cardinality 3D Gaussian scenes into fixed-layout triplane latents that jointly
+          represent geometry and appearance, and decodes content-adaptive Gaussian sets with variable local densities.
+        </p>
+      </div>
+      <div class="columns is-vcentered columns-offset-lg">
+        <div class="column is-full-width">
+          <div class="content has-text-justified">
+            <p>
+              Recent progress in 3D generation has motivated growing interest in compact generative representations of
+              complex 3D scenes. For native 3D Gaussian scenes, however, learning such representations remains
+              challenging due to widely varying primitive counts, nonuniform spatial density, and differences in
+              geometry and appearance even among spatially neighboring primitives. In this work, we introduce
+              <b>TriFold</b>, a native 3D Gaussian VAE that encodes Gaussian scenes into a fixed-layout triplane
+              latent and jointly reconstructs their geometry and appearance. The key insight is to impose structural
+              regularity on the latent space while preserving the spatial adaptivity of the underlying Gaussians.
+              During encoding, we use cell-wise learned queries to aggregate projected Gaussians into multiple slots
+              per cell, reducing the information loss caused by single-feature pooling. During decoding, occupancy
+              prediction identifies active regions, where query-based set prediction and candidate selection
+              reconstruct local Gaussian sets with spatially varying primitive counts. Building on this
+              representation, we train a latent flow-matching model for conditional scene-level 3DGS generation,
+              enabling point-cloud-conditioned synthesis and single-image-conditioned amodal generation. Experiments
+              demonstrate that TriFold achieves high-fidelity reconstruction and generation from a single image that
+              provides only a partial observation of the scene, validating its effectiveness for native 3D Gaussian
+              representation learning.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <section class="section">
+    <div class="container is-max-desktop section-title-tight">
+      <h2 class="title is-3">Overview</h2>
+      <div class="container container-wide has-text-centered">
+        <img class="overview-image figure-img" src="./assets/fig2_method.png" alt="TriFold method overview">
+        <p class="figure-caption">
+          The triplane encoder maps a variable-cardinality Gaussian set to a fixed-layout variational latent, and the
+          triplane decoder reconstructs spatially adaptive local Gaussian sets. The learned latent further supports
+          image- and point-cloud-conditioned scene generation with flow matching.
+        </p>
+      </div>
+      <div class="columns is-vcentered columns-offset-md">
+        <div class="column is-full-width">
+          <div class="content has-text-justified">
+            <p>
+              TriFold is a variational autoencoder that operates directly on native 3D Gaussian primitives. The
+              <b>triplane encoder</b> extracts context-aware primitive features with a point transformer (PTv3) and
+              projects them onto three orthogonal planes. Instead of pooling all primitives that collide in a cell
+              into a single vector, <i>Q</i> learned queries per cell aggregate them into multiple feature slots, and
+              a sparse cross-plane attention module exchanges information between corresponding cells before a
+              variational bottleneck produces the triplane latent.
+            </p>
+            <p>
+              The <b>triplane decoder</b> adopts a set-based decoding paradigm without rigid 3D discretization. An
+              occupancy predictor first localizes active regions; for each occupied voxel, a DETR-style set decoder
+              predicts Gaussian candidates, and entropy-regularized optimal transport matches them to the local target
+              set. The predefined query count only bounds local capacity — both the spatial allocation and the
+              per-voxel primitive count adapt to scene content. Gaussian centers are supervised through
+              optimal-transport matching, while the remaining geometric and appearance attributes are constrained by a
+              full-scene rendering loss.
+            </p>
+            <p>
+              On the frozen latent space, a conditional <b>latent flow-matching model</b> supports
+              point-cloud-conditioned synthesis from complete spatial observations and single-image-conditioned
+              amodal generation, inferring plausible geometry and appearance for unobserved regions.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <section class="section">
+    <div class="container is-max-desktop section-title-tight">
+      <h2 class="title is-3">Scene Reconstruction</h2>
+      <div class="content has-text-justified">
+        <p>
+          We compare TriFold against Can3Tok, DiffGS, and GaussianGPT under the same scene-level training and
+          evaluation protocol. TriFold achieves the best results across all metrics, improving PSNR over GaussianGPT
+          by <b>5.15 dB</b> while reducing LPIPS and Chamfer Distance.
+        </p>
+      </div>
+
+      <div class="has-text-centered">
+        <table class="table results is-bordered is-striped is-hoverable">
+          <thead>
+            <tr>
+              <th>Method</th>
+              <th>PSNR &uarr;</th>
+              <th>SSIM &uarr;</th>
+              <th>LPIPS &darr;</th>
+              <th>CD (&times;10<sup>3</sup>) &darr;</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Can3Tok</td>
+              <td>4.53</td>
+              <td>0.012</td>
+              <td>0.920</td>
+              <td>10.96</td>
+            </tr>
+            <tr>
+              <td>DiffGS</td>
+              <td>12.43</td>
+              <td>0.719</td>
+              <td>0.374</td>
+              <td>3.21</td>
+            </tr>
+            <tr>
+              <td>GaussianGPT</td>
+              <td><u>21.40</u></td>
+              <td><u>0.856</u></td>
+              <td><u>0.157</u></td>
+              <td><u>2.62</u></td>
+            </tr>
+            <tr>
+              <td><b>TriFold (Ours)</b></td>
+              <td><b>26.55</b></td>
+              <td><b>0.913</b></td>
+              <td><b>0.088</b></td>
+              <td><b>2.23</b></td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="figure-caption">
+          Quantitative comparison with existing 3D Gaussian representation methods. Best results are in bold,
+          second-best are underlined.
+        </p>
+      </div>
+      <br />
+
+      <div class="has-text-centered">
+        <img src="./assets/fig3_recon.png" class="figure-img" alt="Qualitative VAE reconstruction comparison">
+        <p class="figure-caption">
+          Qualitative VAE reconstruction comparison. Compared with GaussianGPT, TriFold better captures scene geometry
+          and appearance.
+        </p>
+      </div>
+      <br />
+
+      <div class="has-text-centered">
+        <img src="./assets/fig4_allocation.png" class="figure-img" alt="Adaptive 3DGS allocation">
+        <p class="figure-caption">
+          Adaptive 3DGS allocation. The decoder retains a content-dependent number of Gaussians per occupied voxel
+          (heatmap, right), instead of a fixed per-cell budget.
+        </p>
+      </div>
+      <br />
+
+      <div class="has-text-centered">
+        <img src="./assets/fig8_more_recon.png" class="figure-img" alt="Additional VAE reconstructions">
+        <p class="figure-caption">
+          Additional VAE reconstructions. Under the identical evaluation setup, TriFold preserves more visible layout,
+          appearance, and fine-grained local structures.
+        </p>
+      </div>
+    </div>
+  </section>
+
+
+  <section class="section is-light">
+    <div class="container is-max-desktop section-title-tight">
+      <h2 class="title is-3">Scene Generation</h2>
+      <div class="content has-text-justified">
+        <p>
+          Built on the TriFold latent space, a latent flow-matching model supports two conditioning settings:
+          <b>point-cloud-conditioned synthesis</b> from complete spatial observations, and
+          <b>single-image-conditioned amodal generation</b>, where a single image provides only a partial observation
+          of the scene.
+        </p>
+      </div>
+
+      <div class="has-text-centered">
+        <img src="./assets/fig5_pcgen.png" class="figure-img" alt="Point-cloud-conditioned generation">
+        <p class="figure-caption">
+          Point-cloud-conditioned generation. Given a full point cloud, the latent flow model generates native 3DGS
+          with coherent geometry and appearance across novel views.
+        </p>
+      </div>
+      <br />
+
+      <div class="has-text-centered">
+        <img src="./assets/fig6_amodal.png" class="figure-img" alt="Single-image amodal generation">
+        <p class="figure-caption">
+          Single-image amodal generation. Given one input image, the latent flow model generates plausible room
+          structure and appearance across novel views.
+        </p>
+      </div>
+      <br />
+
+      <div class="has-text-centered">
+        <table class="table results is-bordered is-striped is-hoverable">
+          <thead>
+            <tr>
+              <th rowspan="2">Condition</th>
+              <th colspan="2">Observed Appearance</th>
+              <th colspan="2">Unobserved Appearance</th>
+              <th colspan="2">Unobserved Geometry</th>
+            </tr>
+            <tr>
+              <th>FID &darr;</th>
+              <th>KID (&times;10<sup>3</sup>) &darr;</th>
+              <th>FID &darr;</th>
+              <th>KID (&times;10<sup>3</sup>) &darr;</th>
+              <th>COV-CD (%) &uarr;</th>
+              <th>MMD-CD (&times;10<sup>3</sup>) &darr;</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Full point cloud</td>
+              <td>54.12</td>
+              <td>16.76</td>
+              <td colspan="4">N/A (complete conditioning)</td>
+            </tr>
+            <tr>
+              <td>Single image</td>
+              <td>60.38</td>
+              <td>18.20</td>
+              <td>67.81</td>
+              <td>21.43</td>
+              <td>85.24</td>
+              <td>12.75</td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="figure-caption">
+          Conditional generation evaluation. For single-image conditioning, appearance is evaluated separately in
+          regions observed and unobserved from the conditioning view.
+        </p>
+      </div>
+    </div>
+  </section>
+
+
+  <section class="section" id="BibTeX">
+    <div class="container is-max-desktop content">
+      <h2 class="title">BibTeX</h2>
+      <pre><code>@inproceedings{trifold2027,
+  title     = {TriFold: Folding Irregular 3D Gaussians into Structured Latents for 3D Scene Generation},
+  author    = {Anonymous},
+  booktitle = {International Conference on Learning Representations (ICLR)},
+  note      = {Under review},
+  year      = {2027},
+}</code></pre>
+    </div>
+  </section>
+
+  <script src="./static/js/more-research.js"></script>
+  <script>
+    loadMoreResearchDropdown({
+      mountId: "moreResearchDropdown",
+      jsonUrl: "https://raw.githubusercontent.com/Fantasy-AMAP/.github/refs/heads/main/profile/research.json"
+    });
+  </script>
+</body>
+
+</html>
