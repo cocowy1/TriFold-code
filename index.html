@@ -314,6 +314,52 @@
   </section>
 
 
+  <section class="section" id="interactive-recon">
+    <div class="container is-max-desktop section-title-tight">
+      <h2 class="title is-3">Interactive Viewer: VAE Reconstruction</h2>
+      <div class="content has-text-justified">
+        <p>
+          Compare the <b>ground-truth scene-level 3DGS</b> against the <b>TriFold VAE reconstruction</b>
+          interactively. Pick a scene on the left, toggle the variant on the right. The viewer loads on demand
+          (compressed PLY, 11&ndash;36&nbsp;MB per model). Drag to orbit, scroll to zoom, right-drag to pan.
+        </p>
+      </div>
+
+      <div
+        style="display:flex;justify-content:center;gap:18px;flex-wrap:wrap;align-items:center;margin-bottom:0.75rem;">
+        <div style="display:flex;gap:10px;">
+          <button class="recon-thumb" data-scene="recon_200"
+            style="padding:0;border:2px solid #fff;border-radius:6px;overflow:hidden;cursor:pointer;background:none;line-height:0;width:180px;">
+            <img src="./assets/splats/thumb_recon_200.jpg" alt="Reconstruction scene 200"
+              style="display:block;width:100%;">
+          </button>
+          <button class="recon-thumb" data-scene="recon_342"
+            style="padding:0;border:2px solid #555;border-radius:6px;overflow:hidden;cursor:pointer;background:none;line-height:0;width:180px;">
+            <img src="./assets/splats/thumb_recon_342.jpg" alt="Reconstruction scene 342"
+              style="display:block;width:100%;">
+          </button>
+        </div>
+        <div class="buttons has-addons" style="margin-bottom:0;">
+          <button class="button is-small recon-variant" data-variant="gt">Ground Truth</button>
+          <button class="button is-small recon-variant is-dark" data-variant="ours">TriFold (Ours)</button>
+        </div>
+      </div>
+
+      <div id="recon-viewer"
+        style="width:100%;height:560px;border:1px solid #333;border-radius:6px;position:relative;overflow:hidden;background:#141414;">
+        <div id="recon-overlay"
+          style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#ddd;font-size:1.05rem;background:rgba(20,20,20,0.85);z-index:5;">
+          ▶ Click to load the interactive reconstruction viewer
+        </div>
+      </div>
+      <p class="figure-caption has-text-centered">
+        The TriFold VAE reconstruction preserves layout, appearance, and fine-grained structures of the ground-truth
+        scene. Camera starts at the same viewpoint used in the comparison videos above.
+      </p>
+    </div>
+  </section>
+
+
   <section class="section is-light">
     <div class="container is-max-desktop section-title-tight">
       <h2 class="title is-3">Scene Generation</h2>
@@ -506,6 +552,82 @@
       b.addEventListener('click', () => showSplatScene(b.dataset.scene));
     });
     showSplatScene('gen_0071');
+
+    // --- reconstruction viewer (loads on demand) ---
+    const RECON_SCENES = {
+      recon_200: {
+        gt: './assets/splats/recon_200_gt.ply',
+        ours: './assets/splats/recon_200_ours.ply',
+        position: [-0.026, -0.674, 0.018],
+        lookAt: [-0.026, 0.020, -0.018]
+      },
+      recon_342: {
+        gt: './assets/splats/recon_342_gt.ply',
+        ours: './assets/splats/recon_342_ours.ply',
+        position: [-0.001, -0.669, 0.085],
+        lookAt: [-0.001, -0.011, 0.051]
+      }
+    };
+    let reconScene = 'recon_200';
+    let reconVariant = 'ours';
+    let reconViewer = null;
+    let reconStarted = false;
+    let reconToken = 0;
+    const reconContainer = document.getElementById('recon-viewer');
+    const reconOverlay = document.getElementById('recon-overlay');
+
+    function startRecon() {
+      if (!reconStarted) {
+        reconStarted = true;
+        reconOverlay.remove();
+      }
+    }
+
+    async function showReconScene() {
+      const cfg = RECON_SCENES[reconScene];
+      if (!cfg) return;
+      const token = ++reconToken;
+
+      document.querySelectorAll('.recon-thumb').forEach(b => {
+        b.style.borderColor = (b.dataset.scene === reconScene) ? '#fff' : '#555';
+      });
+      document.querySelectorAll('.recon-variant').forEach(b => {
+        b.classList.toggle('is-dark', b.dataset.variant === reconVariant);
+      });
+
+      if (reconViewer) {
+        try { reconViewer.dispose(); } catch (e) { /* ignore */ }
+        reconViewer = null;
+        reconContainer.innerHTML = '';
+      }
+
+      const viewer = new GaussianSplats3D.Viewer({
+        rootElement: reconContainer,
+        cameraUp: [0, 0, 1],
+        initialCameraPosition: cfg.position,
+        initialCameraLookAt: cfg.lookAt,
+        sharedMemoryForWorkers: false,
+        gpuAcceleratedSort: false
+      });
+      viewer.camera.near = 0.01;
+      viewer.camera.updateProjectionMatrix();
+      reconViewer = viewer;
+      try {
+        await viewer.addSplatScene(cfg[reconVariant], { showLoadingUI: true, progressiveLoad: false });
+        if (token !== reconToken) { try { viewer.dispose(); } catch (e) { /* ignore */ } return; }
+        viewer.start();
+      } catch (err) {
+        console.error('Failed to load recon scene:', err);
+      }
+    }
+
+    reconOverlay.addEventListener('click', () => { startRecon(); showReconScene(); });
+    document.querySelectorAll('.recon-thumb').forEach(b => {
+      b.addEventListener('click', () => { reconScene = b.dataset.scene; startRecon(); showReconScene(); });
+    });
+    document.querySelectorAll('.recon-variant').forEach(b => {
+      b.addEventListener('click', () => { reconVariant = b.dataset.variant; startRecon(); showReconScene(); });
+    });
   </script>
 </body>
 
