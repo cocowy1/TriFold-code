@@ -44,7 +44,7 @@
 
   <style>
     .figure-img {
-      border: 1px solid #eee;
+      border: 1px solid #e9e3d6;
       border-radius: 6px;
       background: #fff;
       max-width: 100%;
@@ -53,7 +53,7 @@
     .figure-caption {
       margin: 0.75rem auto 0;
       font-size: 0.95rem;
-      color: #555;
+      color: #6b6258;
       max-width: 900px;
     }
 
@@ -329,12 +329,12 @@
         style="display:flex;justify-content:center;gap:18px;flex-wrap:wrap;align-items:center;margin-bottom:0.75rem;">
         <div style="display:flex;gap:10px;">
           <button class="recon-thumb" data-scene="recon_200"
-            style="padding:0;border:2px solid #fff;border-radius:6px;overflow:hidden;cursor:pointer;background:none;line-height:0;width:180px;">
+            style="padding:0;border:2px solid #c2571f;border-radius:6px;overflow:hidden;cursor:pointer;background:none;line-height:0;width:180px;">
             <img src="./assets/splats/thumb_recon_200.jpg" alt="Reconstruction scene 200"
               style="display:block;width:100%;">
           </button>
           <button class="recon-thumb" data-scene="recon_342"
-            style="padding:0;border:2px solid #555;border-radius:6px;overflow:hidden;cursor:pointer;background:none;line-height:0;width:180px;">
+            style="padding:0;border:2px solid #d8d2c4;border-radius:6px;overflow:hidden;cursor:pointer;background:none;line-height:0;width:180px;">
             <img src="./assets/splats/thumb_recon_342.jpg" alt="Reconstruction scene 342"
               style="display:block;width:100%;">
           </button>
@@ -432,22 +432,22 @@
       <div id="splat-gallery"
         style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-top:12px;">
         <button class="splat-thumb" data-scene="gen_0071"
-          style="padding:0;border:2px solid #fff;border-radius:6px;overflow:hidden;cursor:pointer;background:none;line-height:0;">
+          style="padding:0;border:2px solid #c2571f;border-radius:6px;overflow:hidden;cursor:pointer;background:none;line-height:0;">
           <img src="./assets/splats/thumb_0071.jpg" alt="Input image of generated scene 0071"
             style="display:block;width:100%;">
         </button>
         <button class="splat-thumb" data-scene="gen_0250"
-          style="padding:0;border:2px solid #555;border-radius:6px;overflow:hidden;cursor:pointer;background:none;line-height:0;">
+          style="padding:0;border:2px solid #d8d2c4;border-radius:6px;overflow:hidden;cursor:pointer;background:none;line-height:0;">
           <img src="./assets/splats/thumb_0250.jpg" alt="Input image of generated scene 0250"
             style="display:block;width:100%;">
         </button>
         <button class="splat-thumb" data-scene="gen_0015"
-          style="padding:0;border:2px solid #555;border-radius:6px;overflow:hidden;cursor:pointer;background:none;line-height:0;">
+          style="padding:0;border:2px solid #d8d2c4;border-radius:6px;overflow:hidden;cursor:pointer;background:none;line-height:0;">
           <img src="./assets/splats/thumb_0015.jpg" alt="Input image of generated scene 0015"
             style="display:block;width:100%;">
         </button>
         <button class="splat-thumb" data-scene="gen_0069"
-          style="padding:0;border:2px solid #555;border-radius:6px;overflow:hidden;cursor:pointer;background:none;line-height:0;">
+          style="padding:0;border:2px solid #d8d2c4;border-radius:6px;overflow:hidden;cursor:pointer;background:none;line-height:0;">
           <img src="./assets/splats/thumb_0069.jpg" alt="Input image of generated scene 0069"
             style="display:block;width:100%;">
         </button>
@@ -510,7 +510,7 @@
       const token = ++loadToken;
 
       document.querySelectorAll('.splat-thumb').forEach(b => {
-        b.style.borderColor = (b.dataset.scene === key) ? '#fff' : '#555';
+        b.style.borderColor = (b.dataset.scene === key) ? '#c2571f' : '#d8d2c4';
       });
 
       if (splatViewer) {
@@ -580,7 +580,7 @@
       const token = ++reconToken;
 
       document.querySelectorAll('.recon-thumb').forEach(b => {
-        b.style.borderColor = (b.dataset.scene === reconScene) ? '#fff' : '#555';
+        b.style.borderColor = (b.dataset.scene === reconScene) ? '#c2571f' : '#d8d2c4';
       });
       document.querySelectorAll('.recon-variant').forEach(b => {
         b.classList.toggle('is-dark', b.dataset.variant === reconVariant);

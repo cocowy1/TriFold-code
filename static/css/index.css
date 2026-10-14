@@ -1,12 +1,12 @@
 :root {
-  --bg-0: #0a0c10;
-  --bg-1: #0e1116;
-  --bg-2: #151a20;
-  --ink-0: #f3f6fb;
-  --ink-1: rgba(243, 246, 251, 0.78);
-  --ink-2: rgba(243, 246, 251, 0.58);
-  --accent: #7bdff2;
-  --accent-strong: #4fd1c5;
+  --bg-0: #f7f4ec;
+  --bg-1: #fbf9f3;
+  --bg-2: #ffffff;
+  --ink-0: #263341;
+  --ink-1: rgba(38, 51, 65, 0.78);
+  --ink-2: rgba(38, 51, 65, 0.56);
+  --accent: #c2571f;
+  --accent-strong: #a84a18;
   --space-1: 0.4rem;
   --space-2: 0.8rem;
   --space-3: 1.2rem;
@@ -20,9 +20,9 @@ body {
   font-family: 'Noto Sans', sans-serif;
   background-color: var(--bg-0);
   background-image:
-    radial-gradient(1200px 500px at 10% -10%, rgba(123, 223, 242, 0.12), transparent 60%),
-    radial-gradient(900px 450px at 90% 0%, rgba(79, 209, 197, 0.12), transparent 55%),
-    linear-gradient(180deg, #0a0c10 0%, #0a0a0a 55%, #0b0c0f 100%);
+    radial-gradient(1200px 500px at 10% -10%, rgba(224, 138, 62, 0.14), transparent 60%),
+    radial-gradient(900px 450px at 90% 0%, rgba(194, 87, 31, 0.10), transparent 55%),
+    linear-gradient(180deg, #faf7f0 0%, #f7f4ec 55%, #f4f0e6 100%);
   color: var(--ink-0);
   line-height: 1.6;
   letter-spacing: 0.01em;
@@ -79,7 +79,7 @@ a:hover {
 }
 
 .section + .section {
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  border-top: 1px solid rgba(94, 74, 48, 0.12);
 }
 
 .section .container.is-max-desktop {
@@ -90,6 +90,11 @@ a:hover {
   font-weight: 600;
   letter-spacing: -0.01em;
   margin-bottom: var(--space-2);
+}
+
+.section .title,
+.publication-title {
+  font-family: 'Castoro', 'Google Sans', serif;
 }
 
 .section .title.is-3 {
@@ -107,7 +112,7 @@ a:hover {
 
 .footer,
 .site-footer {
-  background-color: rgba(15, 17, 21, 0.7);
+  background-color: rgba(250, 247, 240, 0.75);
   color: var(--ink-1);
 }
 
@@ -191,7 +196,7 @@ code {
 }
 
 .hero-title {
-  text-shadow: 0 0 15px rgba(255, 255, 255, 0.8);
+  color: var(--accent) !important;
   letter-spacing: -0.02em;
 }
 
@@ -254,10 +259,10 @@ code {
 }
 
 .publication-links .button.is-dark {
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: #ffffff;
+  border: 1px solid #e7e0d0;
   color: var(--ink-0);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 8px 24px rgba(94, 74, 48, 0.12);
   backdrop-filter: blur(8px);
   transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
   font-weight: 600;
@@ -265,8 +270,8 @@ code {
 
 .publication-links .button.is-dark:hover {
   transform: translateY(-2px);
-  background: rgba(255, 255, 255, 0.12);
-  border-color: rgba(123, 223, 242, 0.35);
+  background: #fffdf8;
+  border-color: rgba(194, 87, 31, 0.45);
 }
 
 .section-intro {
@@ -393,8 +398,8 @@ video {
   width: 100%;
   height: auto;
   border-radius: 14px;
-  background: rgba(255, 255, 255, 0.02);
-  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.35);
+  background: rgba(255, 255, 255, 0.5);
+  box-shadow: 0 14px 30px rgba(94, 74, 48, 0.16);
 }
 
 .carousel {
